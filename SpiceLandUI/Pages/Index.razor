@@ -1,0 +1,61 @@
+﻿@page "/"
+
+
+@using SpiceLandUI.Services
+@using SpiceLandPOCOs
+<h3>Spices</h3>
+
+@if (spices == null)
+{
+    <p><em>Checking the rack...</em></p>
+}
+else
+{
+
+    <table class="table table-auto">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Purchase Date</th>
+                <th>Expiration Date</th>
+                <th>Last Used</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in spices)
+            {
+                var route = $"spice/{s.Id}";
+
+                <tr data-id="@s.Id">
+                    <td>@s.Name</td>
+                    <td>@s.PurchaseDate</td>
+                    <td>@s.ExpirationDate</td>
+                    <td>@s.LastUsedDate</td>
+                    <td>
+                        <NavLink class="nav-link" href="@route">
+                            Edit
+                        </NavLink>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <NavLink class="nav-link" href="spice">
+        Add to Rack
+    </NavLink>
+
+
+}
+@inject SpiceLandApiService _SpiceLandApiService
+@code {
+
+
+    private List<Spice> spices;
+
+    protected override async Task OnInitializedAsync()
+    {
+        spices = await _SpiceLandApiService.GetSpices();
+    }
+}

@@ -1,0 +1,85 @@
+﻿@page "/spice/{SpiceId:int?}"
+@using SpiceLandUI.Services
+@using SpiceLandPOCOs
+@using Microsoft.AspNetCore.Components
+<h3>Spice</h3>
+
+@if (_editContext == null)
+{
+    <p><em>There's nothing here.</em></p>
+}
+else
+{
+<EditForm EditContext="@_editContext" OnSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <p>
+        <label>
+            Spice Name:
+            <InputText @bind-Value="spiceData.Name" />
+            Purchase On:
+            <InputDate @bind-Value="spiceData.PurchaseDate" />
+
+            Expires On:
+            <InputDate @bind-Value="spiceData.ExpirationDate" />
+            Last Used:
+            <InputDate @bind-Value="spiceData.LastUsedDate" />
+        </label>
+    </p>
+
+    <button type="submit">Submit</button>
+    @if (SpiceId.HasValue)
+    {
+        <button type="delete" @onclick="HandleDelete">Delete</button>
+
+    }
+
+</EditForm>
+
+}
+
+
+@inject SpiceLandApiService _SpiceLandApiService
+@inject NavigationManager _navigationManager
+@code {
+    [Parameter]
+    public int? SpiceId { get; set; }
+
+    private EditContext _editContext;
+    private Spice spiceData;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        spiceData = SpiceId.HasValue ? await _SpiceLandApiService.GetSpice(SpiceId.Value) : new
+            Spice()
+        {
+            PurchaseDate = DateTime.Now.ToShortDateString(),
+            ExpirationDate  = DateTime.Now.ToString()
+        };
+        _editContext = new (spiceData);
+
+    }
+
+    private async Task HandleDelete()
+    {
+
+        await _SpiceLandApiService.DeleteSpice(spiceData.Id);
+
+        _navigationManager.NavigateTo($"/");
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (_editContext.Validate())
+        {
+            var result = spiceData.Id > 0 ? await _SpiceLandApiService.UpdateSpice(spiceData) : await _SpiceLandApiService.CreateSpice(spiceData);
+
+
+            _navigationManager.NavigateTo($"/");
+        }
+    }
+}
